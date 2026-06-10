@@ -68,9 +68,29 @@ gpg --batch --yes --export "${KEY_ID}" > rocky-oss.gpg
 gpg --batch --yes --export --armor "${KEY_ID}" > rocky-oss.asc
 
 echo "==> uploading to r2://${BUCKET}"
-find . -type f | sed 's|^\./||' | while read -r key; do
+put() {
+  local key="$1" cache="$2"
   echo "  ${key}"
-  npx --yes wrangler r2 object put "${BUCKET}/${key}" --file "${key}" --remote >/dev/null
+  npx --yes wrangler r2 object put "${BUCKET}/${key}" --file "${key}" \
+    --cache-control "${cache}" --remote >/dev/null
+}
+
+# Order matters for clients fetching mid-publish: pool first, then the
+# indices, and the signed Release/InRelease very last — a signed index
+# must never reference files that aren't uploaded yet. Cache-Control
+# matters for the CDN: versioned debs are immutable, repository metadata
+# must never be served stale (a cached old Packages.gz alongside a fresh
+# InRelease makes apt fail with hash/size mismatches).
+find pool -type f | sort | while read -r key; do
+  put "${key}" "public, max-age=86400, immutable"
 done
+find "dists/${SUITE}" -type f \( -name "Packages" -o -name "Packages.gz" \) | sort | while read -r key; do
+  put "${key}" "no-cache, must-revalidate"
+done
+for key in "dists/${SUITE}/Release" "dists/${SUITE}/Release.gpg" "dists/${SUITE}/InRelease"; do
+  put "${key}" "no-cache, must-revalidate"
+done
+put rocky-oss.gpg "no-cache"
+put rocky-oss.asc "no-cache"
 
 echo "done."
