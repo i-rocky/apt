@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>apt.clapbox.net — Rocky OSS apt repository</title>
+<meta name="description" content="GPG-signed apt repository for Rocky's CLI tools, served from Cloudflare R2. One sources line, then apt install as usual.">
+<script src="https://cdn.jsdelivr.net/npm/x-zsh@0.7/x-zsh.min.js"></script>
+<style>
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #2dd4bf;
+  --accent-dim: #134e48;
+  --good: #3fb950;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+code, pre { font-family: ui-monospace, "SFMono-Regular", "Cascadia Code", Menlo, Consolas, monospace; }
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 24px; }
+header { padding: 72px 0 40px; text-align: center; }
+.logo { font-size: 44px; font-weight: 700; letter-spacing: -1px; }
+.logo .bar { color: var(--accent); }
+.tagline { color: var(--muted); font-size: 20px; margin-top: 8px; }
+.badges { margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.badge {
+  border: 1px solid var(--border); border-radius: 999px;
+  padding: 4px 14px; font-size: 13px; color: var(--muted);
+}
+.badge.hot { border-color: var(--accent-dim); color: var(--accent); }
+.cta { margin-top: 28px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.btn {
+  display: inline-block; padding: 10px 22px; border-radius: 8px;
+  text-decoration: none; font-weight: 600; font-size: 15px;
+}
+.btn.primary { background: var(--accent); color: #04211d; }
+.btn.ghost { border: 1px solid var(--border); color: var(--text); }
+.hero-term { margin: 36px auto 0; max-width: 820px; }
+section { padding: 40px 0; border-top: 1px solid var(--border); }
+h2 { font-size: 26px; margin-bottom: 18px; letter-spacing: -0.5px; }
+h3 { font-size: 18px; margin: 22px 0 8px; }
+p { color: var(--muted); margin-bottom: 12px; }
+p strong, li strong { color: var(--text); }
+pre.snippet {
+  background: #010409; border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px 18px; font-size: 14px; overflow-x: auto; margin: 10px 0 18px;
+}
+table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 14px 0; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+th { color: var(--muted); font-weight: 600; }
+td code { background: var(--panel); padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+footer { padding: 36px 0 48px; color: var(--muted); font-size: 14px; text-align: center; }
+footer a { color: var(--accent); text-decoration: none; }
+a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <div class="logo">apt.clap<span class="bar">box</span>.net</div>
+  <div class="tagline">Rocky's CLI tools, one <code>apt install</code> away.</div>
+  <div class="badges">
+    <span class="badge hot">GPG-signed</span>
+    <span class="badge">amd64 + arm64</span>
+    <span class="badge">Cloudflare R2</span>
+    <span class="badge">MIT</span>
+  </div>
+  <div class="cta">
+    <a class="btn primary" href="#setup">Add the repo</a>
+    <a class="btn ghost" href="https://github.com/i-rocky/apt">GitHub</a>
+  </div>
+  <div class="hero-term">
+  <x-zsh os="ubuntu" height="300" loop loop-delay="4000">
+    note: add the repo once...
+    root: curl -fsSL https://apt.clapbox.net/rocky-oss.gpg -o /usr/share/keyrings/rocky-oss.gpg
+    root: apt update
+    Get:1 https://apt.clapbox.net stable InRelease [2.7 kB]
+    Get:2 https://apt.clapbox.net stable/main amd64 Packages [537 B]
+    success: All packages are up to date.
+    note: ...then install like anything else
+    root: apt install limitbar
+    progress[1.6s wget]: Fetching limitbar 0.1.0-1
+    success: Setting up limitbar (0.1.0-1) ...
+  </x-zsh>
+  </div>
+</header>
+
+<section class="wrap" id="setup">
+  <h2>Add the repository</h2>
+  <pre class="snippet">curl -fsSL https://apt.clapbox.net/rocky-oss.gpg \
+  | sudo tee /usr/share/keyrings/rocky-oss.gpg >/dev/null
+echo "deb [signed-by=/usr/share/keyrings/rocky-oss.gpg] https://apt.clapbox.net stable main" \
+  | sudo tee /etc/apt/sources.list.d/rocky-oss.list
+sudo apt update</pre>
+  <p>Works on Debian, Ubuntu, and derivatives, on <strong>amd64</strong> and
+  <strong>arm64</strong>. Every release is signed; apt verifies the signature
+  against the key you installed — fingerprint
+  <code>C7752A90E90DC6FE1CD1699FEE6ECE90DAAFB8E6</code>.</p>
+</section>
+
+<section class="wrap" id="packages">
+  <h2>Available packages</h2>
+  <table>
+    <tr><th>Package</th><th>What it is</th><th>Links</th></tr>
+    <tr>
+      <td><code>limitbar</code></td>
+      <td>Always-visible usage meter for LLM rate-limit windows (Claude Code, Codex) — terminal gauges or a click-through overlay. No login, ever.</td>
+      <td><a href="https://i-rocky.github.io/limitbar/">docs</a> · <a href="https://github.com/i-rocky/limitbar">source</a></td>
+    </tr>
+  </table>
+  <p>More of the <a href="https://github.com/i-rocky">Rocky OSS tools</a> are headed here.
+  The live package index is always at
+  <a href="https://apt.clapbox.net/dists/stable/main/binary-amd64/Packages">binary-amd64/Packages</a>.</p>
+</section>
+
+<section class="wrap" id="trust">
+  <h2>How it's built</h2>
+  <p>Each tool's release workflow builds <code>.deb</code> packages and attaches them to its
+  GitHub release with SHA256 checksums. The <a href="https://github.com/i-rocky/apt">publisher</a>
+  pulls those debs, regenerates the apt metadata, signs it, and uploads the tree to
+  Cloudflare R2 — so what apt installs is byte-for-byte what the tool's release CI built.
+  The whole pipeline is open source.</p>
+</section>
+
+<footer class="wrap">
+  MIT licensed · run by <a href="https://github.com/i-rocky">i-rocky</a> ·
+  <a href="https://github.com/i-rocky/apt">publisher source</a>
+</footer>
+
+</body>
+</html>
