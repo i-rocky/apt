@@ -13,6 +13,11 @@ BUCKET="rocky-apt"
 SUITE="stable"
 COMPONENT="main"
 ARCHES=("amd64" "arm64")
+# Architectures we don't build for get empty Packages indices, so apt on
+# multi-arch hosts (e.g. i386 enabled for Steam/Wine) fetches a tiny empty
+# file instead of printing "Skipping acquire ... doesn't support
+# architecture" notices.
+EMPTY_ARCHES=("i386" "armhf" "armel" "ppc64el" "s390x" "riscv64" "mips64el")
 KEY_ID="${ROCKY_APT_KEY:-Rocky OSS APT Repository}"
 
 workdir="$(mktemp -d)"
@@ -37,6 +42,12 @@ for arch in "${ARCHES[@]}"; do
   dpkg-scanpackages --arch "${arch}" pool /dev/null > "${dir}/Packages"
   gzip -9 -kf "${dir}/Packages"
 done
+for arch in "${EMPTY_ARCHES[@]}"; do
+  dir="dists/${SUITE}/${COMPONENT}/binary-${arch}"
+  mkdir -p "${dir}"
+  : > "${dir}/Packages"
+  gzip -9 -kf "${dir}/Packages"
+done
 
 echo "==> generating Release"
 apt-ftparchive \
@@ -45,7 +56,7 @@ apt-ftparchive \
   -o "APT::FTPArchive::Release::Suite=${SUITE}" \
   -o "APT::FTPArchive::Release::Codename=${SUITE}" \
   -o "APT::FTPArchive::Release::Components=${COMPONENT}" \
-  -o "APT::FTPArchive::Release::Architectures=${ARCHES[*]}" \
+  -o "APT::FTPArchive::Release::Architectures=${ARCHES[*]} ${EMPTY_ARCHES[*]}" \
   release "dists/${SUITE}" > "dists/${SUITE}/Release"
 
 echo "==> signing"
