@@ -8,7 +8,7 @@
 # and a wrangler login that can write to the bucket.
 set -euo pipefail
 
-REPOS=("i-rocky/limitbar")
+REPOS=("i-rocky/limitbar" "i-rocky/pixr")
 BUCKET="rocky-apt"
 SUITE="stable"
 COMPONENT="main"
